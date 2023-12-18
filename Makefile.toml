@@ -17,7 +17,7 @@ dependencies = ["clean"]
 
 [tasks.libs]
 command = "cp"
-args = ["-a", "/usr/lib/vosk-linux-x86_64-0.3.43/.", "target/debug"]
+args = ["-a", "/usr/lib/libvosk.so", "target/debug"]
 dependencies = ["build"]
 
 [tasks.test]

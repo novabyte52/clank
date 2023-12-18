@@ -1,5 +1,5 @@
 fn main() {
-    println!("cargo:rerun-if-changed=depend/vosk-linux-x86_64-0.3.43");
-    println!("cargo:rustc-link-search=depend/vosk-linux-x86_64-0.3.43");
+    println!("cargo:rerun-if-changed=vosk");
+    println!("cargo:rustc-link-lib=vosk");
 }
-// depend/vosk-linux-x86_64-0.3.43/libvosk.so
+// depend/vosk-linux-x86_64-0.3.45/libvosk.so

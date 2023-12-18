@@ -1,5 +1,5 @@
 [package]
-name = "project_clank"
+name = "clank"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,5 +7,10 @@ edition = "2021"
 
 [dependencies]
 vosk = "0.2.0"
-wav = "1.0.0"
-cpal = "0.14.1"
+rust-bert = {version = "0.21", features = ["download-libtorch"]}
+tch = "0.13"
+cpal = {version = "0.15.2", features = ["jack"]}
+anyhow = "1.0"
+hound = "3.5"
+clap = { version = "4.0", features = ["derive"] }
+uuid = "1.4.1"

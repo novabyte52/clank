@@ -1,8 +1,11 @@
-from transformers import pipeline
+from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+model_name = "EleutherAI/gpt-neo-2.7B"  # Example model
+model = GPTNeoForCausalLM.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 @app.route("/generate", methods=["POST"])
 def generate_text():
@@ -15,11 +18,22 @@ def generate_text():
     returns:
         string: clanks response to the user.
     """
-    data = request.json
-    prompt = data.get("response", "Hello, I am Clank")
-    generator = pipeline("text-generation", model="gpt2")
-    output = generator(prompt, max_length=50)
-    return jsonify(output)
+    data = request.json  # Get the JSON payload
+    input_text = data.get("text", "")  # Extract the input text
+    if not input_text:
+        return jsonify({"error": "No input text provided"}), 400
+
+    # Tokenize input text
+    inputs = tokenizer(input_text, return_tensors="pt")
+
+    # Generate text
+    outputs = model.generate(inputs["input_ids"], max_length=50, do_sample=True)
+
+    # Decode the generated output and convert to string
+    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    # Return the generated text as JSON
+    return jsonify({"generated_text": generated_text})
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4 @@
+POST http://localhost:5000/generate HTTP/1.1
+content-type: application/json
+
+{"text": "isn't their a boundary to our universe, though?", "session_id": "111f2234-c438-4ff0-84ee-de5b0f1c6428"}

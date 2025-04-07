@@ -6,3 +6,5 @@ torch
 torchaudio
 torchvision
 transformers
+colorlog
+pyyaml

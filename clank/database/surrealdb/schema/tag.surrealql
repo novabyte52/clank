@@ -1,0 +1,4 @@
+DEFINE TABLE tag SCHEMAFULL;
+
+DEFINE FIELD id   ON tag TYPE record(tag);
+DEFINE FIELD name ON tag TYPE string;

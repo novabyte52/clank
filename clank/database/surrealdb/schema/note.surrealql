@@ -1,0 +1,8 @@
+DEFINE TABLE note SCHEMAFULL;
+
+DEFINE FIELD id           ON note TYPE record(note);
+DEFINE FIELD slug         ON note TYPE string;
+DEFINE FIELD filepath     ON note TYPE string;
+DEFINE FIELD frontmatter  ON note TYPE object;
+DEFINE FIELD created_at   ON note TYPE datetime VALUE time::now();
+DEFINE FIELD updated_at   ON note TYPE datetime VALUE time::now();

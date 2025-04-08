@@ -1,0 +1,8 @@
+DEFINE TABLE chunk SCHEMAFULL;
+
+DEFINE FIELD id           ON chunk TYPE record(chunk);
+DEFINE FIELD chunk_index  ON chunk TYPE number;
+DEFINE FIELD content      ON chunk TYPE string;
+DEFINE FIELD headers      ON chunk TYPE array<object>;  -- [{ level, text }]
+DEFINE FIELD note         ON chunk TYPE record(note);   -- parent relationship
+DEFINE FIELD created_at   ON chunk TYPE datetime VALUE time::now();

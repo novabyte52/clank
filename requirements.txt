@@ -8,3 +8,6 @@ torchvision
 transformers
 colorlog
 pyyaml
+surrealdb
+python-frontmatter
+markdown-it-py

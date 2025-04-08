@@ -1,0 +1,6 @@
+DEFINE INDEX idx_note_id     ON note FIELDS slug UNIQUE;
+
+DEFINE INDEX idx_chunk_id    ON chunk FIELDS chunk_index;
+DEFINE INDEX idx_chunk_note  ON chunk FIELDS note;
+
+DEFINE INDEX idx_tag_name    ON tag FIELDS name UNIQUE;

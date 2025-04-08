@@ -26,9 +26,9 @@ Example output:
 
 import re
 import json
-import yaml
 from pathlib import Path
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional, Union, Tuple
+import frontmatter
 
 
 # ─────────────────────────────────────────────────────────────
@@ -56,8 +56,13 @@ def extract_links(text: str) -> List[str]:
 
 
 def normalize_link(link: str) -> str:
-    """Strips .md extensions and lowercases the link for consistent comparison."""
-    return link.strip().lower().replace(".md", "")
+    """
+    Light normalization:
+    - Trims whitespace
+    - Strips trailing `.md` if present
+    - Preserves casing and punctuation
+    """
+    return link.strip().removesuffix(".md")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -104,7 +109,7 @@ def chunk_markdown_text(text: str, include_headers_in_content: bool = True) -> L
             if include_headers_in_content and next_header_line:
                 chunk_text = f"{next_header_line}\n\n{chunk_text}"
             chunks.append({
-                "id": f"chunk_{len(chunks)}",
+                "index": len(chunks),
                 "content": chunk_text,
                 "headers": list(header_stack)
             })
@@ -132,91 +137,79 @@ def chunk_markdown_text(text: str, include_headers_in_content: bool = True) -> L
 # 🔹 Chunking a Single File
 # ─────────────────────────────────────────────────────────────
 
-def extract_frontmatter(text: str) -> (Dict, str):
+def extract_frontmatter(text: str) -> Tuple[Dict, str]:
     """
-    Extracts YAML-style frontmatter from markdown and returns the remaining body.
+    Extracts frontmatter using the `python-frontmatter` package.
 
     Returns:
         Tuple[frontmatter_dict, content_str]
     """
-    if text.startswith("---"):
-        try:
-            _, front, rest = text.split("---", 2)
-            frontmatter = yaml.safe_load(front)
-            return frontmatter or {}, rest.strip()
-        except (ValueError, yaml.YAMLError):
-            pass
-    return {}, text
+    try:
+        post = frontmatter.loads(text)
+        return post.metadata, post.content.strip()
+    except Exception:
+        return {}, text
 
 
-def chunk_markdown_file(file_path: Path) -> List[Dict]:
+def chunk_markdown_note(file_path: Path) -> Dict:
     """
-    Processes a single markdown file into structured chunks,
-    with filepath and extracted links attached.
-
-    Args:
-        file_path (Path): Path to a markdown file.
-
-    Returns:
-        List[Dict]: List of structured chunk dictionaries.
+    Parses a single markdown note and returns a structured note dictionary:
+    {
+        slug, filepath, frontmatter, chunks[]
+    }
     """
     raw_text = read_markdown(file_path)
-    frontmatter, content = extract_frontmatter(raw_text)
+    fm, content = extract_frontmatter(raw_text)
     chunks = chunk_markdown_text(content)
 
     for chunk in chunks:
-        chunk["filepath"] = str(file_path)
-        chunk["frontmatter"] = frontmatter
-
         raw_links = extract_links(chunk["content"])
         chunk["links"] = [
             { "raw": link, "resolved": None }
             for link in map(normalize_link, raw_links)
         ]
 
-    return chunks
+    note = {
+        "slug": file_path.stem.replace(" ", "-").lower(),  # simple slug
+        "filepath": str(file_path),
+        "frontmatter": fm,
+        "chunks": chunks
+    }
+    return note
 
 
 # ─────────────────────────────────────────────────────────────
 # 🔹 Directory-Wide Chunking
 # ─────────────────────────────────────────────────────────────
 
-def chunk_all_markdown_in_dir(directory: Union[str, Path]) -> List[Dict]:
+def load_all_notes_in_dir(directory: Union[str, Path]) -> List[Dict]:
     """
-    Recursively chunks all `.md` files in a directory.
-
-    Args:
-        directory (str | Path): Root directory to scan.
-
-    Returns:
-        List[Dict]: All chunks from all files.
+    Loads and chunks all markdown notes in a directory.
+    Returns a list of structured note objects.
     """
-    all_chunks = []
+    notes = []
     print(f"[Chunker] Scanning directory: {directory}")
 
     for path in Path(directory).rglob("*.md"):
         print(f"[Chunker] Found file: {path}")
-        all_chunks.extend(chunk_markdown_file(path))
+        note = chunk_markdown_note(path)
+        notes.append(note)
 
-    return all_chunks
+    return notes
 
 
 # ─────────────────────────────────────────────────────────────
 # 🔹 JSON Output Helper
 # ─────────────────────────────────────────────────────────────
 
-def write_chunks_to_json(chunks: List[Dict], out_path: Union[str, Path]) -> None:
+def write_notes_to_json(notes: List[Dict], out_path: Union[str, Path]) -> None:
     """
-    Writes a list of chunk dictionaries to a readable JSON file.
-
-    Args:
-        chunks (List[Dict]): Chunk objects.
-        out_path (str | Path): Destination JSON file path.
+    Writes full note structures (with frontmatter + chunks) to JSON.
     """
     path = Path(out_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(chunks, f, indent=2, ensure_ascii=False)
+        json.dump(notes, f, indent=2, ensure_ascii=False)
 
-    print(f"[Serializer] ✅ Wrote {len(chunks)} chunks to {path}")
+    print(f"[Serializer] ✅ Wrote {len(notes)} notes to {path}")

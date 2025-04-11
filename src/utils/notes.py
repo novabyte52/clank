@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Dict
 import frontmatter
-import uuid
+import ulid
 
 def build_note_reference_index(notes: List[Dict]) -> Dict[str, str]:
     """
@@ -40,16 +40,32 @@ def resolve_links_in_notes(notes: List[Dict]) -> None:
         for chunk in note["chunks"]:
             for link in chunk.get("links", []):
                 raw_target = link["raw"]
-                if link.get("resolved") is None:
+                if link.get("resolved") is None and index.get(raw_target) is not None:
                     link["resolved"] = f"note:{index.get(raw_target)}"
 
 
-def inject_uuid_into_notes(notes_dir):
+# def inject_uuid_into_notes(notes_dir):
+#     for md_path in Path(notes_dir).rglob("*.md"):
+#         post = frontmatter.load(md_path)
+#         if "id" not in post.metadata:
+#             post.metadata["id"] = str(uuid.uuid4())
+#             frontmatter.dump(post, md_path)
+#             print(f"[UUID] Added id to {md_path}")
+#         else:
+#             print(f"[UUID] Already has id: {md_path}")
+
+
+def inject_ulid_into_notes(notes_dir, force=False):
     for md_path in Path(notes_dir).rglob("*.md"):
         post = frontmatter.load(md_path)
+
         if "id" not in post.metadata:
-            post.metadata["id"] = str(uuid.uuid4())
+            post.metadata["id"] = str(ulid.new())
             frontmatter.dump(post, md_path)
-            print(f"[UUID] Added id to {md_path}")
+            print(f"[ULID] Added id to {md_path}")
+        elif force:
+            post.metadata["id"] = str(ulid.new())
+            frontmatter.dump(post, md_path)
+            print(f"[ULID] Force set id to {md_path}")
         else:
-            print(f"[UUID] Already has id: {md_path}")
+            print(f"[ULID] Already has id: {md_path}")

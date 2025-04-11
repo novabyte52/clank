@@ -1,0 +1,11 @@
+-- 🔗 Chunk-to-Note Links (inline links)
+DEFINE TABLE chunk_links_note RELATES chunk -> note;
+
+-- 🔗 Note-to-Note (relational links in frontmatter)
+DEFINE TABLE note_links_note RELATES note -> note;
+
+-- 🔗 Note ↔ Tag edges (frontmatter tags)
+DEFINE TABLE note_tag RELATES note -> tag;
+
+-- 🔗 Chunk ↔ Tag edges (inline tags)
+DEFINE TABLE chunk_tag RELATES chunk -> tag;

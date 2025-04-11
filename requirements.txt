@@ -11,3 +11,4 @@ pyyaml
 surrealdb
 python-frontmatter
 markdown-it-py
+ulid-py
